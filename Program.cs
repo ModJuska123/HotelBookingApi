@@ -11,10 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseInMemoryDatabase("HotelBookingDb"); // Configure in-memory database
-});
-
+    options.UseInMemoryDatabase("HotelBookingDb"));
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -23,9 +20,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-var env = app.Services.GetRequiredService<IWebHostEnvironment>();
-if (env.IsDevelopment())
+// Ensure the database is seeded
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated(); // Ensure the database is created.
+}
+
+if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
